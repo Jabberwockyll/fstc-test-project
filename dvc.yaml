@@ -1,0 +1,30 @@
+stages:
+  prepare:
+    cmd: python3 scripts/create_reddit_dataset.py
+    # deps:
+    params:
+      -  prepare.max_examples
+      - prepare.curated_subreddits
+      - random_seed
+      - prepare.sample_size_test
+      - prepare.n_most_common_words
+    outs:
+      - data/reddit/reddit_dataset_1300.pkl
+      - data/reddit/most_common_words.pkl
+  zmap:
+    cmd: python3 scripts/zmap.py
+    deps:
+      - data/reddit/reddit_dataset_1300.pkl
+      - data/reddit/most_common_words.pkl
+    params:
+      - zmap.k_words
+      - zmap.alpha
+    metrics:
+      - accuracy.json:
+          cache: false
+    # plots:
+    #   - accuracy_plot.json:
+    #       cache: false
+
+
+    

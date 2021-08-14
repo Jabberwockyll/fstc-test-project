@@ -1,0 +1,13 @@
+# params.yaml
+
+#random_seed: 42
+
+prepare:
+  max_examples: 60000
+  n_most_common_words: 100000
+  sample_size_test: 1300
+  curated_subreddits: ['relationships', 'trees', 'gaming', 'funny', 'politics', 'sex', 'Fitness', 'worldnews', 'personalfinance', 'technology']
+  random_seed: 42
+zmap:
+  kwords: 20000
+  alpha: 5
