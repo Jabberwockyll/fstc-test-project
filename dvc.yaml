@@ -3,11 +3,12 @@ stages:
     cmd: python3 scripts/create_reddit_dataset.py
     # deps:
     params:
-      -  prepare.max_examples
+      - prepare.max_examples
       - prepare.curated_subreddits
-      - random_seed
+      - prepare.random_seed
       - prepare.sample_size_test
       - prepare.n_most_common_words
+      - prepare.sample_size_train
     outs:
       - data/reddit/reddit_dataset_1300.pkl
       - data/reddit/most_common_words.pkl
@@ -17,14 +18,16 @@ stages:
       - data/reddit/reddit_dataset_1300.pkl
       - data/reddit/most_common_words.pkl
     params:
-      - zmap.k_words
+      - zmap.kwords
       - zmap.alpha
     metrics:
-      - accuracy.json:
+      - results/accuracy.json:
           cache: false
-    # plots:
-    #   - accuracy_plot.json:
-    #       cache: false
+    plots:
+      - results/confusion_plot.csv:
+          cache: false
+    #outs:
+      #- data/maps/Zmap_20k_w2v_words_alpha0.pt
 
 
     

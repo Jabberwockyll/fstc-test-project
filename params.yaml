@@ -3,11 +3,12 @@
 #random_seed: 42
 
 prepare:
-  max_examples: 60000
-  n_most_common_words: 100000
+  random_seed: 41
+  max_examples: 20000
+  n_most_common_words: 10
   sample_size_test: 1300
+  sample_size_train: 15
   curated_subreddits: ['relationships', 'trees', 'gaming', 'funny', 'politics', 'sex', 'Fitness', 'worldnews', 'personalfinance', 'technology']
-  random_seed: 42
 zmap:
-  kwords: 20000
+  kwords: 2000
   alpha: 5

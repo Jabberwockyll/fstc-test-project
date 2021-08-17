@@ -1,0 +1,51 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python3 scripts/create_reddit_dataset.py
+    params:
+      params.yaml:
+        prepare.curated_subreddits:
+        - relationships
+        - trees
+        - gaming
+        - funny
+        - politics
+        - sex
+        - Fitness
+        - worldnews
+        - personalfinance
+        - technology
+        prepare.max_examples: 20000
+        prepare.n_most_common_words: 10
+        prepare.random_seed: 41
+        prepare.sample_size_test: 1300
+        prepare.sample_size_train: 15
+    outs:
+    - path: data/reddit/most_common_words.pkl
+      md5: ff3bdd7cf5060d05ef074bb3121dedee
+      size: 161
+      isexec: true
+    - path: data/reddit/reddit_dataset_1300.pkl
+      md5: 16a88f9076c76cfb33a6b7348aa289e2
+      size: 3002719
+      isexec: true
+  zmap:
+    cmd: python3 scripts/zmap.py
+    deps:
+    - path: data/reddit/most_common_words.pkl
+      md5: ff3bdd7cf5060d05ef074bb3121dedee
+      size: 161
+    - path: data/reddit/reddit_dataset_1300.pkl
+      md5: 16a88f9076c76cfb33a6b7348aa289e2
+      size: 3002719
+    params:
+      params.yaml:
+        zmap.alpha: 5
+        zmap.kwords: 2000
+    outs:
+    - path: results/accuracy.json
+      md5: bed81720fff3d5a675d4f00d734ff3ff
+      size: 160
+    - path: results/confusion_plot.csv
+      md5: 18bbb5440d678c0c400e4b4b29ac30f9
+      size: 46567

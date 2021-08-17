@@ -20,7 +20,10 @@ params = yaml.safe_load(open("params.yaml"))["prepare"]
 
 
 def download_reddit(curated_subreddits, max_examples=60000):
-    dataset = load_dataset("reddit", split='train', cache_dir="/media/jonathob/DATA/.cache/huggingface/datasets")
+    dataset = load_dataset("reddit", split='train', cache_dir="/media/jonathob/DATA/.cache/huggingface/datasets", keep_in_memory=False)
+    dataset.shuffle()
+    dataset = dataset.select(np.arange(100000))
+
     print("loaded")
 
     #dataset = dataset['train']
@@ -62,13 +65,13 @@ def download_reddit(curated_subreddits, max_examples=60000):
             else:
                 continue
 
-    subreddit_mask == 1
+    subreddit_mask = subreddit_mask == 1
+
+    # this file lives on a local machine
+    dataset = pd.DataFrame(dataset)
 
     # create the subset
     subset = dataset[subreddit_mask]
-
-    # this file lives on a local machine
-    subset = pd.DataFrame(subset)
     subset.to_csv(DATADIR + "/reddit_subset.pd")
 
 
@@ -107,8 +110,8 @@ def preprocess(random_state=42):
                                                         random_state=random_state, 
                                                         stratify=df['subreddit'])
 
-    X_train.to_csv("../data/reddit/reddit_subset_train.csv")
-    X_test.to_csv("../data/reddit/reddit_subset_test.csv")
+    X_train.to_csv("data/reddit/reddit_subset_train.csv")
+    X_test.to_csv("data/reddit/reddit_subset_test.csv")
 
     return df
 
@@ -141,11 +144,11 @@ def most_frequent_words(df, n_words=100000):
 
     most_common_words = {"no_punc": most_common_words1, "no_punc_no_stop": most_common_words2}
 
-    pickle.dump(most_common_words, open("../data/reddit/most_common_words.pkl", "wb"))
+    pickle.dump(most_common_words, open("data/reddit/most_common_words.pkl", "wb"))
 
 
-def subsample(curated_subreddits, test_size=1300, random_state=42):
-    df_train = pd.read_csv("../data/reddit/reddit_subset_train.csv")
+def subsample(curated_subreddits, test_size=1300, train_size = 1000, random_state=42):
+    df_train = pd.read_csv("data/reddit/reddit_subset_train.csv")
 
     curated_subreddits = ['relationships', 'trees', 'gaming', 'funny', 'politics', \
             'sex', 'Fitness', 'worldnews', 'personalfinance', 'technology']
@@ -153,7 +156,7 @@ def subsample(curated_subreddits, test_size=1300, random_state=42):
     sample = (
         df_train[df_train.subreddit.isin(curated_subreddits)]
         .groupby('category', group_keys=False)
-        .apply(lambda x: x.sample(min(len(x), 2000), random_state=random_state))
+        .apply(lambda x: x.sample(min(len(x), train_size * 2), random_state=random_state))
     )
 
     X_train, X_valid, y_train, y_valid = train_test_split(sample, sample['subreddit'], 
@@ -163,25 +166,27 @@ def subsample(curated_subreddits, test_size=1300, random_state=42):
                                                     
     X_train.groupby('subreddit')['subreddit'].count()
 
-    X_train.to_csv("../data/reddit/reddit_subset_train1000.csv")
-    X_valid.to_csv("../data/reddit/reddit_subset_valid1000.csv")
+    X_train.to_csv("data/reddit/reddit_subset_train1000.csv")
+    X_valid.to_csv("data/reddit/reddit_subset_valid1000.csv")
 
-    df_test = pd.read_csv("../my_data/reddit/reddit_subset_test.csv")
+    df_test = pd.read_csv("data/reddit/reddit_subset_test.csv")
 
     df_reddit_test = (
     df_test[df_test.subreddit.isin(curated_subreddits)]
     .groupby('category', group_keys=False)
-    .apply(lambda x: x.sample(min(len(x), test_size), random_state=42))
+    .apply(lambda x: x.sample(min(len(x), test_size), random_state=random_state))
     .assign(
         category = lambda df: pd.Categorical(df.category),
         label = lambda df: df.category.cat.codes
         )
     )
 
-    # save the .csv version of this test set
-    df_reddit_test.to_csv("../data/reddit/reddit_subset_test1300.csv")
+    import pdb;pdb.set_trace()
 
-    filename = "../data/reddit/reddit_dataset_1300.pkl"
+    # save the .csv version of this test set
+    df_reddit_test.to_csv("data/reddit/reddit_subset_test1300.csv")
+
+    filename = "data/reddit/reddit_dataset_1300.pkl"
 
     # Cast the pandas df as a Dateset object
     reddit_test_data = _create_dataset_from_df(df_reddit_test, 'summary')
@@ -200,5 +205,5 @@ print("Computing most frequent words")
 most_frequent_words(df, n_words=params["n_most_common_words"])
 
 print("Subsampling Reddit dataset")
-subsample(params["curated_subreddits"], test_size=params["sample_test_size"],
+subsample(params["curated_subreddits"], test_size=params["sample_size_test"], train_size=params["sample_size_train"],
                                         random_state=params["random_seed"])
