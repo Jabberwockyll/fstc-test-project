@@ -20,7 +20,9 @@ params = yaml.safe_load(open("params.yaml"))["prepare"]
 
 
 def download_reddit(curated_subreddits, max_examples=60000):
-    dataset = load_dataset("reddit", split='train', cache_dir="/media/jonathob/DATA/.cache/huggingface/datasets", keep_in_memory=False)
+    #dataset = load_dataset("reddit", split='train', cache_dir="/media/jonathob/DATA/.cache/huggingface/datasets", keep_in_memory=False)
+    dataset = load_dataset("reddit", split='train', keep_in_memory=False)
+
     dataset.shuffle()
     dataset = dataset.select(np.arange(100000))
 
